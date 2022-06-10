@@ -67,14 +67,10 @@ class MixD:
         """
         ...
 
-    def cmixd(self, nfact, ):
-        """
-        """
-        ...
 
-    def plot(self):
+    def plot_experiments(self):
         """
         """
         if self.with_mixd:
-            pass
-        ...
+            fig = ff.create_ternary_contour(x, y, pole_labels=self.names, interp_mode='cartesian', colorscale='Viridis', showscale=True, ncontours=ncontours)
+            fig.show()
