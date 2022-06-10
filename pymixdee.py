@@ -8,6 +8,10 @@ class MixD:
     def __diag(self, n):
         return np.eye(n)
     
+    def __dirichlet(self, size, alpha=None):
+        if alpha == None:
+            alpha = [1] * self.nfact
+        return np.random.default_rng().dirichlet(alpha, size)
     
     def simplex_centroid(self, nfact, domain=None):
         ...
@@ -27,6 +31,7 @@ class MixD:
 
     def cmixd(self, nfact, ):
         ...
+
 
 
     def plot(self):
