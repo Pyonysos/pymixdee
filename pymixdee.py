@@ -4,6 +4,8 @@ The pymixdee package is designed to help the scientist, statistician, etc., to c
 
 import numpy as np
 from typing import Union
+from sympy.utilities.iterables import multiset_permutations
+
 
 class MixD:
     """
@@ -35,9 +37,11 @@ class MixD:
         return np.random.default_rng().dirichlet(alpha, size)
     
     def __combinations(self, nfact):
-      for n in range(nfact):
-        m =[1]*n + [0]*(nfact-n)
-        yield np.array(m, ndim=2)/n
+        trim = np.tri(nfact, nfact, 1)
+        trim /= trim.sum(axis=1)
+        for row in trim:
+            trim = np.vstack(trim, np.array(multiset_permutations(row)))
+        return trim
     
     def add_constraints(self, constraints: Union[dict, list]):
         self.with_constraints = True
@@ -45,7 +49,6 @@ class MixD:
     def simplex_centroid(self, nfact, domain=None):
         """
         """
-        mp = self.__diag(nfact)
         
 
     def scheffe_network(self):
