@@ -34,13 +34,19 @@ class MixD:
             alpha = [1] * self.nfact
         return np.random.default_rng().dirichlet(alpha, size)
     
+    def __combinations(self, nfact):
+      for n in range(nfact):
+        m =[1]*n + [0]*(nfact-n)
+        yield np.array(m, ndim=2)/n
+    
     def add_constraints(self, constraints: Union[dict, list]):
         self.with_constraints = True
     
     def simplex_centroid(self, nfact, domain=None):
         """
         """
-        ...
+        mp = self.__diag(nfact)
+        
 
     def scheffe_network(self):
         """
