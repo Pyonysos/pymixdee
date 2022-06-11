@@ -46,12 +46,14 @@ class MixD:
     def add_constraints(self, constraints: Union[dict, list]):
         self.with_constraints = True
     
-    def simplex_centroid(self, nfact, domain=None):
+    def simplex_centroid(self, nfact, degree=2):
         """
         """
         
 
-    def scheffe_network(self):
+    def scheffe_network(self, nfact, degree=2):
+        for n in range(1,degree):
+          np.linspace(0, 1, n)
         """
         """
         ...
