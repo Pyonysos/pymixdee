@@ -57,6 +57,7 @@ class MixD:
     @df_format    
     def dirichlet(self, size, alpha=None):
         """
+        generate a series of mixture following a dirichlet distribution
         """
         if alpha == None:
             alpha = [1] * self.nfact
@@ -65,6 +66,11 @@ class MixD:
         return np.random.default_rng().dirichlet(alpha, size)
     
     def add_lower_constraints(self, mixd, constraints : list):
+        '''
+        add lower constraints to the factors the mix design
+          mixd: pd.Dataframe or np.array. mix plan
+          constraints: list of float. 
+        '''
         constraints = np.array(constraints).reshape(1, -1)
         mixd *= (1 - constraints.sum())
         mixd += constraints
