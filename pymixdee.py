@@ -151,6 +151,21 @@ class MixD:
     def export(self, mixd:pd.DataFrame, filename:str, extension: str='xlsx')
         if extension in ('xlsx', 'excel'):
           self.export_to_excel(mixd, filename)
+        elif extension == 'csv':
+          sel.export_to_csv(mixd, filename)
+          
+    def export_to_csv(self, mixd, filename):
+      '''
+      export to csv
+      
+      '''
+        if isinstance(mixd, (pd.DataFrame,)):
+            mixd.export_to_csv(filename+'.xlsx')
+        else:
+            if self.names is None:
+                self.names = ['x' + str(n) for n in range(self.nfact)]
+            mixd = pd.DataFrame(mixd, columns=self.names)    
+        
         
     def export_to_excel(self, mixd, filename):
       '''
