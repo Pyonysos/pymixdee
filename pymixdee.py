@@ -58,6 +58,9 @@ class MixD:
         return np.concatenate((mixd, center_pt), axis = 0)
     
     def __permutations(self, mixd):
+        '''
+        permutates mixture proportions to cover evenly the experimental domain
+        '''
         for row in mixd:
             permutations = np.array(list(multiset_permutations(row)))
             pmixd = np.concatenate((mixd, permutations), axis = 0)
@@ -99,8 +102,6 @@ class MixD:
             alpha = [n if n > 0 else 1 for n in alpha]
         return np.random.default_rng().dirichlet(alpha, size)
     
-    
-      
     @df_format
     def centroid_simplex(self, ndegree=2, ncenter=1, lower: list= None):
         """
