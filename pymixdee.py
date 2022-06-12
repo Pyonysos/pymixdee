@@ -154,10 +154,10 @@ class MixD:
         #removing duplicates
         duplicates = []
 
-        for n in range(base.shape[0]):
-            for m in range(n+1, base.shape[0]):
-                if np.all(np.isclose(base[n], base[m])):
-                    duplicates.append(m)
+        for i in range(base.shape[0]):
+            for j in range(i+1, base.shape[0]):
+                if np.all(np.isclose(base[i], base[j])):
+                    duplicates.append(j)
         base = base[[n for n in range(base.shape[0]) if n not in duplicates]]
 
         if ncenter > 0:
