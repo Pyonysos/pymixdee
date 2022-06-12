@@ -55,9 +55,11 @@ class MixD:
         return inner
 
     @df_format    
-    def dirichlet(self, size, alpha=None):
+    def dirichlet(self, size: int, alpha: list[int]=None):
         """
         generate a series of mixture following a dirichlet distribution
+        size:   int, number a mix to generate
+        alpha:  list of int
         """
         if alpha == None:
             alpha = [1] * self.nfact
@@ -76,15 +78,23 @@ class MixD:
         mixd += constraints
         return mixd
 
-    def __add_center_points(self, mixd, ncenter, dtype=np.float64):
-        center_pt = np.ones((ncenter, self.nfact), dtype=dtype)/np.array(self.nfact, dtype=dtype)
+    def __add_center_points(self, mixd, ncenter):
+        '''
+        add center points to mixture design
+        mixd:     np.array or pd.DataFrame, mixture design
+        ncenter:  int, number of central points to be added
+        '''
+        center_pt = np.ones((ncenter, self.nfact))/np.array(self.nfact)
         return np.concatenate((mixd, center_pt), axis = 0)
 
     @df_format
     def simplex_centroid(self, ndegree=2, ncenter=1, lower: list= None):
         """
+        generate centroid simplex
+        ndegree:    int, default 2, number of degree of design
+        ncenter:    int, default 1, number of central points to be added
+        lower:      list of float, default None, lower constraints to each factor
         """
-
         ndegree = self.nfact - 1 if ndegree >= self.nfact else ndegree
 
         trim = np.tri(ndegree, self.nfact)
@@ -104,9 +114,13 @@ class MixD:
         return mixd
         
     @df_format
-    def scheffe_network(self, ndegree=2, ncenter=1):
-        '''
-        '''
+    def scheffe_network(self, ndegree=2, ncenter=1, lower: list=None):
+        """
+        generate scheffe network
+        ndegree:    int, default 2, number of degree of design
+        ncenter:    int, default 1, number of central points to be added
+        lower:      list of float, default None, lower constraints to each
+        """
         
         lattice = np.linspace(0, 1, ndegree, endpoint=False).reshape(-1,1)
         base = np.concatenate((lattice, 1-lattice, np.zeros((lattice.shape[0], self.nfact-2))), axis=1)
