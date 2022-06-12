@@ -22,16 +22,26 @@ class MixD:
             scheffe_network:
     """
 
+
     def __init__(self, nfact : int=None, factor_names : list = None, row_limit : int = None):
         if (nfact is None) & (factor_names is None):
             raise ValueError('Missing arguments. Expecting value for either nfact or factor_names')
         self.nfact = nfact if nfact is not None else len(factor_names)
         self.names = factor_names
+        
         self.row_limit = row_limit
         self.with_mixd = False
+
         self.with_constraints = False
+        self.constraints = {}
+        
         self.with_df_format = True
 
+    @df_format
+    def shuffle(self, mixd):
+        mixd = np.array(mixd)
+        np.random.default_rng().shuffle(mixd)
+        return mixd
 
     def df_format(func):
         def inner(self, *args, **kwargs):
@@ -54,17 +64,18 @@ class MixD:
             alpha = [n if n > 0 else 1 for n in alpha]
         return np.random.default_rng().dirichlet(alpha, size)
     
-    def add_constraints(self, constraints: Union[dict, list]):
-        self.with_constraints = True
+    def add_lower_constraints(self, mixd, constraints : list):
+        constraints = np.array(constraints).reshape(1, -1)
+        mixd *= (1 - constraints.sum())
+        mixd += constraints
+        return mixd
 
-    def __add_center_points(self, mixd, ncenter):
-        center_pt = np.ones((ncenter, self.nfact))/self.nfact
+    def __add_center_points(self, mixd, ncenter, dtype=np.float64):
+        center_pt = np.ones((ncenter, self.nfact), dtype=dtype)/np.array(self.nfact, dtype=dtype)
         return np.concatenate((mixd, center_pt), axis = 0)
 
-
-
     @df_format
-    def simplex_centroid(self, ndegree=2, ncenter=1):
+    def simplex_centroid(self, ndegree=2, ncenter=1, lower: list= None):
         """
         """
 
@@ -79,7 +90,11 @@ class MixD:
 
         if ncenter:
             mixd = self.__add_center_points(trim[ndegree:,:], ncenter)
-        
+        print('number of experiments =' , mixd.shape[0])
+    
+        if lower is not None:
+            mixd = self.add_lower_constraints(mixd, lower)
+
         return mixd
         
     @df_format
@@ -93,42 +108,46 @@ class MixD:
         for row in base:
             permutations = np.array(list(multiset_permutations(row)))
             base = np.concatenate((base, permutations), axis = 0)
-        
-        base = np.unique(base, axis=0)
+
+        duplicates = []
+
+        for n in range(base.shape[0]):
+            for m in range(n+1, base.shape[0]):
+                if np.all(np.isclose(base[n], base[m])):
+                    duplicates.append(m)
+        base = base[[n for n in range(base.shape[0]) if n not in duplicates]]
+
+        #base = base[indexes]
 
         if ncenter > 0:
-            mixd = self.__add_center_points(base, ncenter)
+            mixd = self.__add_center_points(base, ncenter, dtype=dtype)
+        print('number of experiments =' , mixd.shape[0])
         
+        
+        if lower is not None:
+            mixd = self.add_lower_constraints(mixd, lower)
         return mixd
     
+
+    def export_to_excel(self, plan, filename):
+        if isinstance(mixd, (pd.DataFrame,)):
+            mixd.export_to_excel(filename+'.xlsx')
+        else:
+            if self.names is None:
+                self.names = ['x' + str(n) for n in range(self.nfact)]
+            mixd = pd.DataFrame(mixd, columns=self.names)    
     
-    '''
-    in development
-    '''
-    def generate(self, design = None):
-        """
-        """
-        if design in ('centroid', 'sc'):
-            simplex_centroid()
-
-        elif design in ('lattice', 'scheffe', 'sn'):
-            scheffe_network()
-
-        elif design in ('doptimal'):
-            pass
-
-        elif design in ('dirichlet'):
-            pass
-
     def d_optimal(self):
         """
         """
         ...
 
-
+'''
     def plot_experiments(self):
         """
         """
         if self.with_mixd:
             fig = ff.create_ternary_contour(x, y, pole_labels=self.names, interp_mode='cartesian', colorscale='Viridis', showscale=True, ncontours=ncontours)
             fig.show()
+'''
+
