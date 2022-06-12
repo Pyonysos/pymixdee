@@ -86,9 +86,15 @@ class MixD:
         '''
         center_pt = np.ones((ncenter, self.nfact))/np.array(self.nfact)
         return np.concatenate((mixd, center_pt), axis = 0)
-
+    
+    def __permutations(self, mixd):
+        for row in mixd:
+            permutations = np.array(list(multiset_permutations(row)))
+            pmixd = np.concatenate((mixd, permutations), axis = 0)
+        return pmixd[mixd.shape[0]:,:]
+      
     @df_format
-    def simplex_centroid(self, ndegree=2, ncenter=1, lower: list= None):
+    def centroid_simplex(self, ndegree=2, ncenter=1, lower: list= None):
         """
         generate centroid simplex
         ndegree:    int, default 2, number of degree of design
@@ -99,13 +105,17 @@ class MixD:
 
         trim = np.tri(ndegree, self.nfact)
         trim /= np.sum(trim, axis=1).reshape(-1,1)
-
+        
+        trim = self.__permutations(trim)
+        '''
         for row in trim:
             permutations = np.array(list(multiset_permutations(row)))
             trim = np.concatenate((trim, permutations), axis = 0)
-
+        '''
+        
         if ncenter:
-            mixd = self.__add_center_points(trim[ndegree:,:], ncenter)
+            mixd = self.__add_center_points(trim, ncenter)
+            #mixd = self.__add_center_points(trim[ndegree:,:], ncenter)
         print('number of experiments =' , mixd.shape[0])
     
         if lower is not None:
@@ -124,11 +134,16 @@ class MixD:
         
         lattice = np.linspace(0, 1, ndegree, endpoint=False).reshape(-1,1)
         base = np.concatenate((lattice, 1-lattice, np.zeros((lattice.shape[0], self.nfact-2))), axis=1)
-
+        
+        #generate multiset_permutations
+        '''
         for row in base:
             permutations = np.array(list(multiset_permutations(row)))
             base = np.concatenate((base, permutations), axis = 0)
-
+        '''
+        base = self.__permutations(base)
+        
+        #removing duplicates
         duplicates = []
 
         for n in range(base.shape[0]):
@@ -138,10 +153,9 @@ class MixD:
         base = base[[n for n in range(base.shape[0]) if n not in duplicates]]
 
         if ncenter > 0:
-            mixd = self.__add_center_points(base, ncenter, dtype=dtype)
+            mixd = self.__add_center_points(base, ncenter)
         print('number of experiments =' , mixd.shape[0])
-        
-        
+
         if lower is not None:
             mixd = self.add_lower_constraints(mixd, lower)
         return mixd
