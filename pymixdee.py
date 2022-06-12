@@ -137,8 +137,6 @@ class MixD:
                     duplicates.append(m)
         base = base[[n for n in range(base.shape[0]) if n not in duplicates]]
 
-        #base = base[indexes]
-
         if ncenter > 0:
             mixd = self.__add_center_points(base, ncenter, dtype=dtype)
         print('number of experiments =' , mixd.shape[0])
@@ -157,7 +155,6 @@ class MixD:
     def export_to_csv(self, mixd, filename):
       '''
       export to csv
-      
       '''
         if isinstance(mixd, (pd.DataFrame,)):
             mixd.export_to_csv(filename+'.xlsx')
@@ -170,7 +167,6 @@ class MixD:
     def export_to_excel(self, mixd, filename):
       '''
       export to excel
-      
       '''
         if isinstance(mixd, (pd.DataFrame,)):
             mixd.export_to_excel(filename+'.xlsx')
