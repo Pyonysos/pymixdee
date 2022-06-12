@@ -39,11 +39,17 @@ class MixD:
 
     @df_format
     def shuffle(self, mixd):
+        '''
+        method to shuffle the experiments within mix designs
+        '''
         mixd = np.array(mixd)
         np.random.default_rng().shuffle(mixd)
         return mixd
 
     def df_format(func):
+        '''
+        decorator converting numpy array to dataframe
+        '''
         def inner(self, *args, **kwargs):
             mixd_array = func(self, *args, **kwargs)
             if self.with_df_format == False:
