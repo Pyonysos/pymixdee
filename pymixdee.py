@@ -148,8 +148,15 @@ class MixD:
             mixd = self.add_lower_constraints(mixd, lower)
         return mixd
     
-
-    def export_to_excel(self, plan, filename):
+    def export(self, mixd:pd.DataFrame, filename:str, extension: str='xlsx')
+        if extension in ('xlsx', 'excel'):
+          self.export_to_excel(mixd, filename)
+        
+    def export_to_excel(self, mixd, filename):
+      '''
+      export to excel
+      
+      '''
         if isinstance(mixd, (pd.DataFrame,)):
             mixd.export_to_excel(filename+'.xlsx')
         else:
