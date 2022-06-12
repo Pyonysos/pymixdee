@@ -36,43 +36,7 @@ class MixD:
         self.constraints = {}
         
         self.with_df_format = True
-
-    @df_format
-    def shuffle(self, mixd):
-        '''
-        method to shuffle the experiments within mix designs
-        '''
-        mixd = np.array(mixd)
-        np.random.default_rng().shuffle(mixd)
-        return mixd
-
-    def df_format(func):
-        '''
-        decorator converting numpy array to dataframe
-        '''
-        def inner(self, *args, **kwargs):
-            mixd_array = func(self, *args, **kwargs)
-            if self.with_df_format == False:
-                return mixd_array
-            elif self.names:
-                return pd.DataFrame(mixd_array, columns=self.names)
-            else:
-                return mixd_array
-        return inner
-
-    @df_format    
-    def dirichlet(self, size: int, alpha: list[int]=None):
-        """
-        generate a series of mixture following a dirichlet distribution
-        size:   int, number a mix to generate
-        alpha:  list of int
-        """
-        if alpha == None:
-            alpha = [1] * self.nfact
-        elif 0 in alpha:
-            alpha = [n if n > 0 else 1 for n in alpha]
-        return np.random.default_rng().dirichlet(alpha, size)
-    
+        
     def add_lower_constraints(self, mixd, constraints : list):
         '''
         add lower constraints to the factors the mix design
@@ -98,6 +62,44 @@ class MixD:
             permutations = np.array(list(multiset_permutations(row)))
             pmixd = np.concatenate((mixd, permutations), axis = 0)
         return pmixd[mixd.shape[0]:,:]
+        
+    def df_format(f):
+        '''
+        decorator converting numpy array to dataframe
+        '''
+        def inner(self, *args, **kwargs):
+            mixd_array = f(self, *args, **kwargs)
+            if self.with_df_format == False:
+                return mixd_array
+            elif self.names:
+                return pd.DataFrame(mixd_array, columns=self.names)
+            else:
+                return mixd_array
+        return inner
+
+    @df_format
+    def shuffle(self, mixd):
+        '''
+        method to shuffle the experiments within mix designs
+        '''
+        mixd = np.array(mixd)
+        np.random.default_rng().shuffle(mixd)
+        return mixd
+
+    @df_format    
+    def dirichlet(self, size: int, alpha: list[int]=None):
+        """
+        generate a series of mixture following a dirichlet distribution
+        size:   int, number a mix to generate
+        alpha:  list of int
+        """
+        if alpha == None:
+            alpha = [1] * self.nfact
+        elif 0 in alpha:
+            alpha = [n if n > 0 else 1 for n in alpha]
+        return np.random.default_rng().dirichlet(alpha, size)
+    
+    
       
     @df_format
     def centroid_simplex(self, ndegree=2, ncenter=1, lower: list= None):
@@ -118,7 +120,6 @@ class MixD:
             permutations = np.array(list(multiset_permutations(row)))
             trim = np.concatenate((trim, permutations), axis = 0)
         '''
-        
         if ncenter:
             mixd = self.__add_center_points(trim, ncenter)
             #mixd = self.__add_center_points(trim[ndegree:,:], ncenter)
@@ -126,7 +127,7 @@ class MixD:
     
         if lower is not None:
             mixd = self.add_lower_constraints(mixd, lower)
-
+            
         return mixd
         
     @df_format
