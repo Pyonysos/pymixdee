@@ -188,7 +188,7 @@ class MixD:
     def __i_efficiency(self):
         ...
     
-    def fedorov_algorithm(self, ntrial, criterion, ntest):
+    def fedorov_algorithm(self, ntrial, criterion='d', ntest=50):
         '''
         1. définir un grand nombre d'expériences N
         2. définir le nombre d'essais n à réaliser
