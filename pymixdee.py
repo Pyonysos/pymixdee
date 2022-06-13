@@ -17,8 +17,11 @@ class MixD:
             row_limit:          int, maximum number of experiments
         methods:
             dirichlet:          
-            simplex_centroid:
-            scheffe_network:
+            centroid_simplex:
+            scheffe_design:
+            optimal_mixd:
+            add_lower_constraints:
+            shuffle:
     """
 
 
@@ -147,21 +150,10 @@ class MixD:
         base = np.concatenate((lattice, 1-lattice, np.zeros((lattice.shape[0], self.nfact-2))), axis=1)
         
         #generate multiset_permutations
-        '''
-        for row in base:
-            permutations = np.array(list(multiset_permutations(row)))
-            base = np.concatenate((base, permutations), axis = 0)
-        '''
         base = self.__permutations(base)
         
         #removing duplicates
-        duplicates = []
-
-        for i in range(base.shape[0]):
-            for j in range(i+1, base.shape[0]):
-                if np.all(np.isclose(base[i], base[j])):
-                    duplicates.append(j)
-        base = base[[n for n in range(base.shape[0]) if n not in duplicates]]
+        base = self.__remove_duplicates(base)
 
         if ncenter > 0:
             mixd = self.__add_center_points(base, ncenter)
@@ -171,11 +163,14 @@ class MixD:
             mixd = self.add_lower_constraints(mixd, lower)
         return mixd
     
-    def __d_efficiency(self):
+    def __d_efficiency(self, matA, matB):
         '''
         minimiser determinant de la matrice de dispersion (X'X)^-(-1) <=> maximise la matrice d'information (X'X)
         '''
-        ...
+        inf_matA = (matA.T).dot(matA)
+        inf_matB = (matB.T).dot(matB)
+        best = matA if np.linalg.det(inf_matA) > np.linalg.det(inf_matB) else matB
+        return best
     
     def __g_efficiency(self):
         '''
@@ -189,7 +184,7 @@ class MixD:
         '''
         ...
     
-    def __fedorov_algorithm(self):
+    def fedorov_algorithm(self, ntrial, criteria):
         '''
         1. définir un grand nombre d'expériences N
         2. définir le nombre d'essais n à réaliser
@@ -199,14 +194,18 @@ class MixD:
         6. recalculer le critère -> si il augmente conserver cet échange sinon annuler l'echange
         7. itérer jusque convergence
         '''
-        ...
+        N = self.dirichlet(500)
+        n = N[:ntrial, :]
+
+        alt = 0
+        n = self.__d_efficiency(n, alt)
 
     def optimal_mixd(self, ntrial: int= 20, criteria: str='d'):
         """
         plan tq V(b) = (X'X)^(-1) * sig² /// (X'X)^(-1) dépend du plan vs. sig² dépend des résultats 
 
         => minimiser (X'X)^(-1) 
-        Algorithme de federov
+        Algorithme de fedorov
         """
         ...
 
