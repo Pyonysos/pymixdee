@@ -7,6 +7,8 @@ import pandas as pd
 from typing import Union
 from sympy.utilities.iterables import multiset_permutations
 
+import matplotlib.pyplot as plt
+
 
 class MixD:
     """
@@ -158,14 +160,18 @@ class MixD:
             mixd = self.add_lower_constraints(mixd, lower)
         return mixd
     
+    def __determinant(self, mat):
+        return np.linalg.det( (mat.T).dot(mat) )
+    
     def __d_efficiency(self, matA, matB):
         '''
         minimiser determinant de la matrice de dispersion (X'X)^-(-1) <=> maximise la matrice d'information (X'X)
         '''
-        inf_matA = (matA.T).dot(matA)
-        inf_matB = (matB.T).dot(matB)
-        best = matA if np.linalg.det(inf_matA) > np.linalg.det(inf_matB) else matB
-        return best
+        detA = self.__determinant(matA)
+        detB = self.__determinant(matB)
+        
+        best = matA if detA > detB else matB
+        return best, min(detA, detB)
     
     def __g_efficiency(self):
         '''
@@ -178,12 +184,15 @@ class MixD:
         minimiser la moyenne de la variance des coefficients de la matrice de dispersion (X'X)^-(-1)
         '''
         ...
+        
+    def __i_efficiency(self):
+        ...
     
-    def fedorov_algorithm(self, ntrial, criteria):
+    def fedorov_algorithm(self, ntrial, criterion, ntest):
         '''
         1. définir un grand nombre d'expériences N
         2. définir le nombre d'essais n à réaliser
-        3. tirer au hasard n expériences par les N
+        3. tirer au hasard n expériences parmi les N
         4. calculer le critère d'optimisation (det(X'X) par exemple)
         5. sortir au hasard une des n expériences et ajouter une des N-n
         6. recalculer le critère -> si il augmente conserver cet échange sinon annuler l'echange
@@ -191,8 +200,17 @@ class MixD:
         '''
         N = self.dirichlet(500)
         n = N[:ntrial, :]
-
-        n = self.__d_efficiency(n, alt)
+        convergence_history = []
+        for _ in range(ntest):
+            i = np.default_rng().choice(range(ntrial))
+            j = np.default_rng().choice(range(ntrial, N.shape[0]))
+        
+            m = n.copy()
+            m[i] = N[j]
+            n, det = eval(f'self.__{criterion}_efficiency')(n, m)
+            convergence_history.append(det)
+        plt.plot(range(len(convergence_history)), convergence_history)
+        return n
 
     def optimal_mixd(self, ntrial: int= 20, criteria: str='d'):
         """
