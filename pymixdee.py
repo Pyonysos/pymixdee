@@ -8,7 +8,6 @@ from typing import Union
 from sympy.utilities.iterables import multiset_permutations
 
 
-
 class MixD:
     """
     MixD class:
@@ -23,18 +22,12 @@ class MixD:
     """
 
 
-    def __init__(self, nfact : int=None, factor_names : list = None, row_limit : int = None):
+    def __init__(self, nfact : int=None, factor_names : list = None):
         if (nfact is None) & (factor_names is None):
             raise ValueError('Missing arguments. Expecting value for either nfact or factor_names')
+
         self.nfact = nfact if nfact is not None else len(factor_names)
         self.names = factor_names
-        
-        self.row_limit = row_limit
-        self.with_mixd = False
-
-        self.with_constraints = False
-        self.constraints = {}
-        
         self.with_df_format = True
         
     def add_lower_constraints(self, mixd, constraints : list):
@@ -63,8 +56,16 @@ class MixD:
         '''
         for row in mixd:
             permutations = np.array(list(multiset_permutations(row)))
-            pmixd = np.concatenate((mixd, permutations), axis = 0)
-        return pmixd[mixd.shape[0]:,:]
+            mixd = np.concatenate((mixd, permutations), axis = 0)
+        return mixd
+
+    def __remove_duplicates(self, mixd):
+        duplicates = []
+        for i in range(mixd.shape[0]):
+            for j in range(i+1, mixd.shape[0]):
+                if np.all(np.isclose(mixd[i], mixd[j])):
+                    duplicates.append(j)
+        return mixd[[n for n in range(mixd.shape[0]) if n not in duplicates]]
         
     def df_format(f):
         '''
@@ -121,6 +122,8 @@ class MixD:
             permutations = np.array(list(multiset_permutations(row)))
             trim = np.concatenate((trim, permutations), axis = 0)
         '''
+        trim = self.__remove_duplicates(trim)
+
         if ncenter:
             mixd = self.__add_center_points(trim, ncenter)
             #mixd = self.__add_center_points(trim[ndegree:,:], ncenter)
@@ -132,9 +135,9 @@ class MixD:
         return mixd
         
     @df_format
-    def scheffe_network(self, ndegree=2, ncenter=1, lower: list=None):
+    def scheffe_design(self, ndegree=2, ncenter=1, lower: list=None):
         """
-        generate scheffe network
+        generate Scheffe design
         ndegree:    int, default 2, number of degree of design
         ncenter:    int, default 1, number of central points to be added
         lower:      list of float, default None, lower constraints to each
@@ -168,16 +171,60 @@ class MixD:
             mixd = self.add_lower_constraints(mixd, lower)
         return mixd
     
-    def export(self, mixd:pd.DataFrame, filename:str, extension: str='xlsx')
+    def __d_efficiency(self):
+        '''
+        minimiser determinant de la matrice de dispersion (X'X)^-(-1) <=> maximise la matrice d'information (X'X)
+        '''
+        ...
+    
+    def __g_efficiency(self):
+        '''
+        minimiser la variance de prédiction en trouvant les expériences qui prévoient avec le plus de prédiction
+        '''
+        ...
+    
+    def __a_efficiency(self):
+        '''
+        minimiser la moyenne de la variance des coefficients de la matrice de dispersion (X'X)^-(-1)
+        '''
+        ...
+    
+    def __fedorov_algorithm(self):
+        '''
+        1. définir un grand nombre d'expériences N
+        2. définir le nombre d'essais n à réaliser
+        3. tirer au hasard n expériences par les N
+        4. calculer le critère d'optimisation (det(X'X) par exemple)
+        5. sortir au hasard une des n expériences et ajouter une des N-n
+        6. recalculer le critère -> si il augmente conserver cet échange sinon annuler l'echange
+        7. itérer jusque convergence
+        '''
+        ...
+
+    def optimal_mixd(self, ntrial: int= 20, criteria: str='d'):
+        """
+        plan tq V(b) = (X'X)^(-1) * sig² /// (X'X)^(-1) dépend du plan vs. sig² dépend des résultats 
+
+        => minimiser (X'X)^(-1) 
+        Algorithme de federov
+        """
+        ...
+
+    '''
+    =================================================================================================
+                                            EXPORT METHODS
+    =================================================================================================
+    '''
+    def export(self, mixd:pd.DataFrame, filename:str, extension: str='xlsx'):
         if extension in ('xlsx', 'excel'):
           self.export_to_excel(mixd, filename)
         elif extension == 'csv':
           sel.export_to_csv(mixd, filename)
           
     def export_to_csv(self, mixd, filename):
-      '''
-      export to csv
-      '''
+        '''
+        export to csv
+        '''
         if isinstance(mixd, (pd.DataFrame,)):
             mixd.export_to_csv(filename+'.xlsx')
         else:
@@ -187,20 +234,16 @@ class MixD:
         
         
     def export_to_excel(self, mixd, filename):
-      '''
-      export to excel
-      '''
+        '''
+        export to excel
+        '''
         if isinstance(mixd, (pd.DataFrame,)):
             mixd.export_to_excel(filename+'.xlsx')
         else:
             if self.names is None:
                 self.names = ['x' + str(n) for n in range(self.nfact)]
             mixd = pd.DataFrame(mixd, columns=self.names)    
-    
-    def d_optimal(self):
-        """
-        """
-        ...
+
 
 '''
     def plot_experiments(self):
