@@ -107,7 +107,7 @@ class MixD:
         return np.random.default_rng().dirichlet(alpha, size)
     
     @df_format
-    def centroid_simplex(self, ndegree=2, ncenter=1, lower: list= None):
+    def simplex_centroid(self, ndegree=2, ncenter=1, lower: list= None):
         """
         generate centroid simplex
         ndegree:    int, default 2, number of degree of design
@@ -116,20 +116,15 @@ class MixD:
         """
         ndegree = self.nfact - 1 if ndegree >= self.nfact else ndegree
 
-        trim = np.tri(ndegree, self.nfact)
-        trim /= np.sum(trim, axis=1).reshape(-1,1)
+        base = np.tri(ndegree, self.nfact)
+        base /= np.sum(base, axis=1).reshape(-1,1)
         
-        trim = self.__permutations(trim)
-        '''
-        for row in trim:
-            permutations = np.array(list(multiset_permutations(row)))
-            trim = np.concatenate((trim, permutations), axis = 0)
-        '''
-        trim = self.__remove_duplicates(trim)
+        base = self.__permutations(base)
+        base = self.__remove_duplicates(base)
 
         if ncenter:
-            mixd = self.__add_center_points(trim, ncenter)
-            #mixd = self.__add_center_points(trim[ndegree:,:], ncenter)
+            mixd = self.__add_center_points(base, ncenter)
+            #mixd = self.__add_center_points(base[ndegree:,:], ncenter)
         print('number of experiments =' , mixd.shape[0])
     
         if lower is not None:
@@ -138,7 +133,7 @@ class MixD:
         return mixd
         
     @df_format
-    def scheffe_design(self, ndegree=2, ncenter=1, lower: list=None):
+    def simplex_lattice(self, ndegree=2, ncenter=1, lower: list=None):
         """
         generate Scheffe design
         ndegree:    int, default 2, number of degree of design
@@ -197,7 +192,6 @@ class MixD:
         N = self.dirichlet(500)
         n = N[:ntrial, :]
 
-        alt = 0
         n = self.__d_efficiency(n, alt)
 
     def optimal_mixd(self, ntrial: int= 20, criteria: str='d'):
