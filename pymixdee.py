@@ -198,7 +198,7 @@ class MixD:
         6. recalculer le critère -> si il augmente conserver cet échange sinon annuler l'echange
         7. itérer jusque convergence
         '''
-        N = self.dirichlet(500)
+        N = self.dirichlet(ntest*10)
         n = N[:ntrial, :]
         convergence_history = []
         for _ in range(ntest):
@@ -256,14 +256,3 @@ class MixD:
                 self.names = ['x' + str(n) for n in range(self.nfact)]
             mixd = pd.DataFrame(mixd, columns=self.names)
             self.export_to_excel(mixd, filename)
-
-
-'''
-    def plot_experiments(self):
-        """
-        """
-        if self.with_mixd:
-            fig = ff.create_ternary_contour(x, y, pole_labels=self.names, interp_mode='cartesian', colorscale='Viridis', showscale=True, ncontours=ncontours)
-            fig.show()
-'''
-
