@@ -237,11 +237,12 @@ class MixD:
         export to csv
         '''
         if isinstance(mixd, (pd.DataFrame,)):
-            mixd.export_to_csv(filename+'.xlsx')
+            mixd.export_to_csv(filename+'.csv')
         else:
             if self.names is None:
                 self.names = ['x' + str(n) for n in range(self.nfact)]
-            mixd = pd.DataFrame(mixd, columns=self.names)    
+            mixd = pd.DataFrame(mixd, columns=self.names)
+            self.export_to_csv(mixd, filename)
         
         
     def export_to_excel(self, mixd, filename):
@@ -253,7 +254,8 @@ class MixD:
         else:
             if self.names is None:
                 self.names = ['x' + str(n) for n in range(self.nfact)]
-            mixd = pd.DataFrame(mixd, columns=self.names)    
+            mixd = pd.DataFrame(mixd, columns=self.names)
+            self.export_to_excel(mixd, filename)
 
 
 '''
