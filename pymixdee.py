@@ -32,7 +32,7 @@ class MixD:
             raise ValueError('Missing arguments. Expecting value for either nfact or factor_names')
 
         self.nfact = nfact if nfact is not None else len(factor_names)
-        self.names = factor_names
+        self.names = factor_names if factor_names is not None else ['x'+str(n) for n in range(len(self.nfact))]
         self.with_df_format = True
         
     def add_lower_constraints(self, mixd, constraints : list):
