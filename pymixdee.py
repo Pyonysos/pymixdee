@@ -176,6 +176,8 @@ class MixD:
     def __g_efficiency(self):
         '''
         minimiser la variance de prédiction en trouvant les expériences qui prévoient avec le plus de prédiction
+        g_eff = 100 * nfact / (ntrial*d)
+        d= maximmum value of x( X^(-1).X )x' (where x is a row of the mixd)
         '''
         ...
     
