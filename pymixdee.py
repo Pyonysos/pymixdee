@@ -95,6 +95,12 @@ class MixD:
         np.random.default_rng().shuffle(mixd)
         return mixd
 
+    '''
+    =================================================================================================
+                                    CLASSICAL MIXTURE DESIGNS
+    =================================================================================================
+    '''   
+
     @df_format    
     def dirichlet(self, size: int, alpha: list[int]=None):
         """
@@ -159,19 +165,49 @@ class MixD:
         if lower is not None:
             mixd = self.add_lower_constraints(mixd, lower)
         return mixd
+
+
+
+
+
+    '''
+    =================================================================================================
+                                            OPTIMAL DESIGNS
+    =================================================================================================
+    '''   
     
-    def __determinant(self, mat):
-        return np.linalg.det( (mat.T).dot(mat) )
+    def __determinant_infmat(self, mat: np.array):
+        '''
+        compute determinant of the information matrix:  |X'X|
+        '''
+        return np.linalg.det( self.__information_matrix(mat) )
     
-    def __d_efficiency(self, matA, matB):
+    def __information_matrix(self, mat: np.array):
+        return (mat.T).dot(mat)
+
+    def __dispersion_matrix(self, mat):
+        return np.linalg.inv( self.__information_matrix(mat) )
+    
+    def __d_efficiency(self, mat: np.array):
         '''
         minimiser determinant de la matrice de dispersion (X'X)^-(-1) <=> maximise la matrice d'information (X'X)
+        d_eff = 100*det(X'X)^(1/nfact)/ntrial
         '''
-        detA = self.__determinant(matA)
-        detB = self.__determinant(matB)
+
+        det = self.__determinant_infmat(mat)
+       
+        return 100 * det**(1/mat.shape[1]) / mat.shape[0]
+
+
+    def __a_efficiency(self, mat: np.array):
+        '''
+        minimiser la moyenne de la variance des coefficients de la matrice de dispersion (X'X)^-(-1)
+        a-efficiency = (100*nfact)/trace[ ntrial*(X'X)^(-1)]
+        '''
+
+        a = mat.shape[1] * self.__dispersion_matrix(mat)
         
-        best = matA if detA > detB else matB
-        return best, min(detA, detB)
+        return 100*mat.shape[0] / np.trace(a)
     
     def __g_efficiency(self):
         '''
@@ -181,16 +217,8 @@ class MixD:
         '''
         ...
     
-    def __a_efficiency(self):
-        '''
-        minimiser la moyenne de la variance des coefficients de la matrice de dispersion (X'X)^-(-1)
-        '''
-        ...
-        
-    def __i_efficiency(self):
-        ...
-    
-    def fedorov_algorithm(self, ntrial, criterion='d', ntest=50):
+    @df_format
+    def fedorov_algorithm(self, ntrial:int, criterion:str='d', ntest:int=50):
         '''
         1. définir un grand nombre d'expériences N
         2. définir le nombre d'essais n à réaliser
@@ -200,21 +228,44 @@ class MixD:
         6. recalculer le critère -> si il augmente conserver cet échange sinon annuler l'echange
         7. itérer jusque convergence
         '''
-        N = self.dirichlet(ntest*10)
+        
+        #N = np.array(self.dirichlet(ntest*10))
+        N = np.array(self.simplex_centroid(ndegree=3, ncenter=1))
         n = N[:ntrial, :]
         convergence_history = []
         for _ in range(ntest):
-            i = np.default_rng().choice(range(ntrial))
-            j = np.default_rng().choice(range(ntrial, N.shape[0]))
+            i = np.random.default_rng().choice(range(ntrial))
+            j = np.random.default_rng().choice(range(ntrial, N.shape[0]))
         
             m = n.copy()
             m[i] = N[j]
-            n, det = eval(f'self.__{criterion}_efficiency')(n, m)
-            convergence_history.append(det)
+
+            print(self.__d_efficiency(m), self.__a_efficiency(m))
+
+            if self.__d_efficiency(m) > self.__d_efficiency(n):
+                n = m
+                convergence_history.append(self.__d_efficiency(m))
+
+            #n, det = eval(f'self.__{criterion}_efficiency', (n, m))
+
         plt.plot(range(len(convergence_history)), convergence_history)
         return n
 
-    def optimal_mixd(self, ntrial: int= 20, criteria: str='d'):
+    def genetic_algorithm(self, ntrial : int, criterion: str='d', ntest: int=50):
+        '''
+        selection
+        croisement
+        mutation
+        '''
+        ...
+
+    def hydrid_mixd(self, designs: tuple, ntrial: int **kwargs):
+        '''
+        generates hydrid designs between (centroid, lattice, dirichlet)
+        '''
+
+
+    def optimal_mixd(self, designs: tuple(str)=None, ntrial: int= 20, criteria: str='d', algorithm: str='fedorov', *args, **kwargs):
         """
         plan tq V(b) = (X'X)^(-1) * sig² /// (X'X)^(-1) dépend du plan vs. sig² dépend des résultats 
 
@@ -234,7 +285,7 @@ class MixD:
         elif extension == 'csv':
           sel.export_to_csv(mixd, filename)
           
-    def export_to_csv(self, mixd, filename):
+    def export_to_csv(self, mixd: np.array, filename: str):
         '''
         export to csv
         '''
@@ -247,7 +298,7 @@ class MixD:
             self.export_to_csv(mixd, filename)
         
         
-    def export_to_excel(self, mixd, filename):
+    def export_to_excel(self, mixd: np.array, filename: str):
         '''
         export to excel
         '''
