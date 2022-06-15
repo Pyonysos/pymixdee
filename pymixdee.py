@@ -20,7 +20,7 @@ class MixD:
         methods:
             dirichlet:          
             centroid_simplex:
-            scheffe_design:
+            lattice_simplex:
             optimal_mixd:
             add_lower_constraints:
             shuffle:
