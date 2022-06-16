@@ -167,9 +167,6 @@ class MixD:
         return mixd
 
 
-
-
-
     '''
     =================================================================================================
                                             OPTIMAL DESIGNS
@@ -204,7 +201,6 @@ class MixD:
         minimiser la moyenne de la variance des coefficients de la matrice de dispersion (X'X)^-(-1)
         a-efficiency = (100*nfact)/trace[ ntrial*(X'X)^(-1)]
         '''
-
         a = mat.shape[1] * self.__dispersion_matrix(mat)
         
         return 100*mat.shape[0] / np.trace(a)
@@ -240,9 +236,8 @@ class MixD:
             m = n.copy()
             m[i] = N[j]
 
-            print(self.__d_efficiency(m), self.__a_efficiency(m))
-
-            if self.__d_efficiency(m) > self.__d_efficiency(n):
+            f = getattr(self, f'__{criterion}_efficiency')
+            if f(m) > f(n):
                 n = m
                 convergence_history.append(self.__d_efficiency(m))
 
@@ -257,7 +252,9 @@ class MixD:
         croisement
         mutation
         '''
-        ...
+        
+        N = np.array()
+
 
     def hydrid_mixd(self, designs: tuple, ntrial: int **kwargs):
         '''
