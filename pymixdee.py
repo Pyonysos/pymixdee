@@ -132,7 +132,7 @@ class MixD:
 
         if ncenter:
             mixd = self.__add_center_points(base, ncenter)
-            #mixd = self.__add_center_points(base[ndegree:,:], ncenter)
+
         print('number of experiments =' , mixd.shape[0])
     
         if lower is not None:
@@ -258,11 +258,6 @@ class MixD:
         mutation
         '''
         ...
-
-    def hydrid_mixd(self, designs: tuple, ntrial: int **kwargs):
-        '''
-        generates hydrid designs between (centroid, lattice, dirichlet)
-        '''
 
 
     def optimal_mixd(self, designs: tuple(str)=None, ntrial: int= 20, criteria: str='d', algorithm: str='fedorov', *args, **kwargs):
