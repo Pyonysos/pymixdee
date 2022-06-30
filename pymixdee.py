@@ -185,7 +185,7 @@ class MixD:
     def __dispersion_matrix(self, mat):
         return np.linalg.inv( self.__information_matrix(mat) )
     
-    def __d_efficiency(self, mat: np.array):
+    def _d_efficiency(self, mat: np.array):
         '''
         minimiser determinant de la matrice de dispersion (X'X)^-(-1) <=> maximise la matrice d'information (X'X)
         d_eff = 100*det(X'X)^(1/nfact)/ntrial
@@ -196,7 +196,7 @@ class MixD:
         return 100 * det**(1/mat.shape[1]) / mat.shape[0]
 
 
-    def __a_efficiency(self, mat: np.array):
+    def _a_efficiency(self, mat: np.array):
         '''
         minimiser la moyenne de la variance des coefficients de la matrice de dispersion (X'X)^-(-1)
         a-efficiency = (100*nfact)/trace[ ntrial*(X'X)^(-1)]
@@ -205,7 +205,7 @@ class MixD:
         
         return 100*mat.shape[0] / np.trace(a)
     
-    def __g_efficiency(self):
+    def _g_efficiency(self):
         '''
         minimiser la variance de prédiction en trouvant les expériences qui prévoient avec le plus de prédiction
         g_eff = 100 * nfact / (ntrial*d)
@@ -224,7 +224,7 @@ class MixD:
         6. recalculer le critère -> si il augmente conserver cet échange sinon annuler l'echange
         7. itérer jusque convergence
         '''
-        
+        print(f'criterion: {criterion} efficiency')
         #N = np.array(self.dirichlet(ntest*10))
         N = np.array(self.simplex_centroid(ndegree=3, ncenter=1))
         n = N[:ntrial, :]
@@ -236,10 +236,11 @@ class MixD:
             m = n.copy()
             m[i] = N[j]
 
-            f = getattr(self, f'__{criterion}_efficiency')
+            f = getattr(self, f'_{criterion}_efficiency')
+            convergence_history.append(self._d_efficiency(n))
+            
             if f(m) > f(n):
                 n = m
-                convergence_history.append(self.__d_efficiency(m))
 
             #n, det = eval(f'self.__{criterion}_efficiency', (n, m))
 
@@ -257,7 +258,7 @@ class MixD:
 
 
 
-    def optimal_mixd(self, designs: tuple(str)=None, ntrial: int= 20, criteria: str='d', algorithm: str='fedorov', *args, **kwargs):
+    def optimal_mixd(self, designs: tuple=None, ntrial: int= 20, criteria: str='d', algorithm: str='fedorov', *args, **kwargs):
         """
         plan tq V(b) = (X'X)^(-1) * sig² /// (X'X)^(-1) dépend du plan vs. sig² dépend des résultats 
 
